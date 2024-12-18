@@ -15,8 +15,8 @@ export function Input({
         type={tipoInput}
         value={objState[chiaveState]}
         onChange={callbackState}
+        required
       />
-      <p>{objState[chiaveState]}</p>
     </>
   );
 }

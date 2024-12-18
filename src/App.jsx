@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "./components/Input";
 
 const oggettoPartenza = {
@@ -6,52 +6,126 @@ const oggettoPartenza = {
   prezzo: 0,
   immagine: "",
   contenuto: "",
+  categoria: "default", // Categoria di default
+  pubblicato: false, // Stato booleano per il checkbox
 };
 
 function App() {
-  // State per gli input che sarà un oggetto
   const [inputState, setInputState] = useState(oggettoPartenza);
+  const [arrayState, setArrayState] = useState([]);
 
-  // Funzione per aggiornare lo state
+  useEffect(() => {
+    // Codice da eseguire se variabile in dipendenza cambia
+    if (inputState.pubblicato) alert("Stai per pubblicare il libro");
+  }, [inputState.pubblicato]);
+
   const callBackSetInputState = (event) => {
-    setInputState((inputState) => ({
-      ...inputState,
-      [event.target.name]: event.target.value,
+    const { name, type, value, checked } = event.target;
+    setInputState((prevState) => ({
+      ...prevState,
+      [name]: type === "checkbox" ? checked : value, // Gestione checkbox
     }));
   };
 
-  // Definizione dinamica degli input con relative etichette
-  const labels = {
-    titolo: "Inserisci titolo libro",
-    prezzo: "Inserisci prezzo libro",
-    immagine: "Inserisci immagine copertina",
-    contenuto: "Inserisci descrizione libro",
-  };
+  const callbackSettaOggettoState = (event) => {
+    event.preventDefault(); // Previene il refresh della pagina
 
-  const tipiInput = {
-    titolo: "text",
-    prezzo: "number",
-    immagine: "text",
-    contenuto: "text",
+    if (inputState.pubblicato) {
+      // Aggiungi una copia di inputState a arrayState
+      setArrayState((prevState) => [...prevState, inputState]);
+    }
+
+    // Resetta lo stato del form
+    setInputState(oggettoPartenza);
   };
 
   return (
     <>
-      <h1>Form libri</h1>
-      <form>
-        {/* Creazione dinamica degli input */}
-        {Object.keys(inputState).map((chiave) => (
-          <Input
-            key={chiave}
-            chiaveState={chiave}
-            objState={inputState}
-            callbackState={callBackSetInputState}
-            tipoInput={tipiInput[chiave]} // Tipo dinamico
-            labelText={labels[chiave]} // Label dinamica
-          />
-        ))}
-        <button className="btn btn-primary">Crea libro</button>
+      <h1>Form Articolo</h1>
+      <form onSubmit={callbackSettaOggettoState}>
+        {/* Input per il titolo */}
+        <Input
+          chiaveState="titolo"
+          objState={inputState}
+          callbackState={callBackSetInputState}
+          tipoInput="text"
+          labelText="Inserisci titolo libro"
+        />
+
+        {/* Input per il prezzo */}
+        <Input
+          chiaveState="prezzo"
+          objState={inputState}
+          callbackState={callBackSetInputState}
+          tipoInput="number"
+          labelText="Inserisci prezzo libro"
+        />
+
+        {/* Input per l'immagine */}
+        <Input
+          chiaveState="immagine"
+          objState={inputState}
+          callbackState={callBackSetInputState}
+          tipoInput="text"
+          labelText="Inserisci URL immagine copertina"
+        />
+
+        {/* Input per il contenuto */}
+        <Input
+          chiaveState="contenuto"
+          objState={inputState}
+          callbackState={callBackSetInputState}
+          tipoInput="text"
+          labelText="Inserisci descrizione libro"
+        />
+
+        {/* Select categoria */}
+        <label htmlFor="categoria">Categoria:</label>
+        <select
+          name="categoria"
+          id="categoria"
+          value={inputState.categoria}
+          onChange={callBackSetInputState}
+        >
+          <option value="default" disabled>
+            Seleziona una categoria
+          </option>
+          <option value="romanzo">Romanzo</option>
+          <option value="saggio">Saggio</option>
+          <option value="poesia">Poesia</option>
+        </select>
+
+        {/* Checkbox pubblicazione */}
+        <Input
+          chiaveState="pubblicato"
+          objState={inputState}
+          callbackState={callBackSetInputState}
+          tipoInput="checkbox"
+          labelText="Pubblica articolo"
+        />
+        <button type="submit" className="btn btn-primary">
+          Salva articolo
+        </button>
       </form>
+
+      {/* Card dinamiche */}
+      <div className="card-container">
+        {arrayState.map((currObject, index) => (
+          <div key={index} className="card">
+            <h3>{currObject.titolo}</h3>
+            <p>Prezzo: €{currObject.prezzo}</p>
+            <img
+              src={currObject.immagine || "https://via.placeholder.com/150"}
+              alt={`Copertina di ${currObject.titolo}`}
+            />
+            <p>{currObject.contenuto}</p>
+            <p>Categoria: {currObject.categoria}</p>
+            <p>
+              Stato: {currObject.pubblicato ? "Pubblicato" : "Non pubblicato"}
+            </p>
+          </div>
+        ))}
+      </div>
     </>
   );
 }
